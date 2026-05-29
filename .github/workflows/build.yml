@@ -21,8 +21,8 @@ jobs:
     - name: Install Buildozer and Dependencies
       run: |
         sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev tk-dev libgdbm-compat-dev libreoffice-dev
-        pip3 install --user --upgrade buildozer virtualenv "Cython==0.29.33"
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev tk-dev libgdbm-compat-dev libreoffice-dev cmake
+        pip3 install --user --upgrade buildozer virtualenv Cython==0.29.33
 
     - name: Generate default buildozer.spec if missing
       run: |
@@ -31,6 +31,11 @@ jobs:
           sed -i 's/title = My Application/title = Masikprativedan Autofiller/' buildozer.spec
           sed -i 's/package.name = myapp/package.name = masikprativedan/' buildozer.spec
           sed -i 's/# android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
+          # यह है वो जादुई लाइनें जो 21-मिनट वाले क्रैश को रोकेंगी
+          echo "android.ndk = 25b" >> buildozer.spec
+          echo "android.api = 33" >> buildozer.spec
+          echo "android.minapi = 24" >> buildozer.spec
+          echo "android.ndk_api = 21" >> buildozer.spec
         fi
 
     - name: Build Android APK
