@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -18,35 +18,23 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Install Buildozer and Dependencies
+    - name: Create App Settings
       run: |
-        sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev tk-dev libgdbm-compat-dev libreoffice-dev cmake
-        pip3 install --user --upgrade buildozer virtualenv Cython==0.29.33
+        pip install buildozer
+        buildozer init
+        sed -i 's/.*android.accept_sdk_license.*/android.accept_sdk_license = True/' buildozer.spec
+        sed -i 's/title = My Application/title = Masikprativedan Autofiller/' buildozer.spec
+        sed -i 's/package.name = myapp/package.name = masikprativedan/' buildozer.spec
 
-    - name: Generate default buildozer.spec if missing
-      run: |
-        if [ ! -f buildozer.spec ]; then
-          ~/.local/bin/buildozer init
-          sed -i 's/title = My Application/title = Masikprativedan Autofiller/' buildozer.spec
-          sed -i 's/package.name = myapp/package.name = masikprativedan/' buildozer.spec
-          sed -i 's/# android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
-          # यह है वो जादुई लाइनें जो 21-मिनट वाले क्रैश को रोकेंगी
-          echo "android.ndk = 25b" >> buildozer.spec
-          echo "android.api = 33" >> buildozer.spec
-          echo "android.minapi = 24" >> buildozer.spec
-          echo "android.ndk_api = 21" >> buildozer.spec
-        fi
+    - name: VIP Buildozer Action (Sealed Docker)
+      uses: ArtemSBulgakov/buildozer-action@v1
+      id: buildozer
+      with:
+        command: buildozer android debug
+        buildozer_version: master
 
-    - name: Build Android APK
-      run: |
-        export PATH=$PATH:~/.local/bin
-        yes | buildozer android debug
-      env:
-        PLAYSTORE_RELEASE: "No"
-
-    - name: Upload APK Artifact
+    - name: Upload Final APK
       uses: actions/upload-artifact@v4
       with:
-        name: Masikprativedan-Autofiller-APK
+        name: Masikprativedan-APK
         path: bin/*.apk
