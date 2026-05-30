@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04   # हमने सबसे स्टेबल और पुराना कंप्यूटर फिक्स कर दिया है
+    runs-on: ubuntu-latest   # हमने सबसे स्टेबल और पुराना कंप्यूटर फिक्स कर दिया है
 
     steps:
     - name: Checkout code
