@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
     - name: Checkout code
@@ -18,23 +18,30 @@ jobs:
       with:
         python-version: '3.10'
 
-    - name: Create App Settings
+    - name: Install System Dependencies
       run: |
-        pip install buildozer
+        sudo apt update
+        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev tk-dev libgdbm-compat-dev libreoffice-dev cmake
+        # यहाँ हमने टूटे हुए नए वर्ज़न को रोककर, स्टेबल वर्ज़न (1.5.0) को लॉक कर दिया है
+        pip3 install --user --upgrade "buildozer==1.5.0" "Cython==0.29.33" virtualenv
+
+    - name: Configure Buildozer
+      run: |
+        export PATH=$PATH:~/.local/bin
         buildozer init
-        sed -i 's/.*android.accept_sdk_license.*/android.accept_sdk_license = True/' buildozer.spec
         sed -i 's/title = My Application/title = Masikprativedan Autofiller/' buildozer.spec
         sed -i 's/package.name = myapp/package.name = masikprativedan/' buildozer.spec
+        sed -i 's/# android.accept_sdk_license = False/android.accept_sdk_license = True/' buildozer.spec
 
-    - name: VIP Buildozer Action (Sealed Docker)
-      uses: ArtemSBulgakov/buildozer-action@v1
-      id: buildozer
-      with:
-        command: buildozer android debug
-        buildozer_version: master
+    - name: Build Android APK
+      run: |
+        export PATH=$PATH:~/.local/bin
+        yes | buildozer android debug
+      env:
+        PLAYSTORE_RELEASE: "No"
 
-    - name: Upload Final APK
+    - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: Masikprativedan-APK
+        name: Masikprativedan-Autofiller-APK
         path: bin/*.apk
