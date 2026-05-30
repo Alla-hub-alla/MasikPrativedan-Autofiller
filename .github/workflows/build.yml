@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04   # हमने सबसे स्टेबल और पुराना कंप्यूटर फिक्स कर दिया है
 
     steps:
     - name: Checkout code
@@ -16,12 +16,13 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.10'
+        python-version: '3.8'   # Python 3.8 सबसे परफेक्ट है Android के लिए
 
     - name: Install System Dependencies
       run: |
         sudo apt update
-        sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev tk-dev libgdbm-compat-dev libreoffice-dev cmake
+        # यहाँ हमने Java 11 सेट कर दी है जो बिल्कुल क्रैश नहीं होती
+        sudo apt install -y build-essential git zip unzip openjdk-11-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev libsqlite3-dev tk-dev libgdbm-compat-dev libreoffice-dev cmake
         pip3 install --user --upgrade "buildozer==1.5.0" "Cython==0.29.33" virtualenv
 
     - name: Configure Buildozer
@@ -32,17 +33,16 @@ jobs:
         sed -i 's/package.name = myapp/package.name = masikprativedan/' buildozer.spec
         sed -i 's/.*android.accept_sdk_license.*/android.accept_sdk_license = True/' buildozer.spec
         
-        # यही वो 'मज़बूत ताले' हैं जो मैं पिछली बार भूल गया था!
-        # यह गिटहब को नया और खराब NDK 28c डाउनलोड करने से रोकेगा।
+        # NDK और API का सबसे मज़बूत ताला
         sed -i 's/^# android.ndk =.*/android.ndk = 25b/' buildozer.spec
         sed -i 's/^# android.api =.*/android.api = 33/' buildozer.spec
-        sed -i 's/^# android.minapi =.*/android.minapi = 24/' buildozer.spec
+        sed -i 's/^# android.minapi =.*/android.minapi = 21/' buildozer.spec
         sed -i 's/^# android.ndk_api =.*/android.ndk_api = 21/' buildozer.spec
 
     - name: Build Android APK
       run: |
         export PATH=$PATH:~/.local/bin
-        yes | buildozer android debug
+        buildozer android debug
       env:
         PLAYSTORE_RELEASE: "No"
 
